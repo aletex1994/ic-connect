@@ -5,10 +5,23 @@
       "package": "ic_siwb_provider",
       "type": "rust"
     },
+    "ic_siwb_provider_testnet": {
+      "candid": "packages/ic_siwb_provider/ic_siwb_provider.did",
+      "package": "ic_siwb_provider",
+      "type": "rust"
+    },
     "ic_siwb_test_canister": {
       "candid": "packages/ic_siwb_test_canister/ic_siwb_test_canister.did",
       "package": "ic_siwb_test_canister",
       "type": "rust"
+    },
+    "ic_siwb_web": {
+      "frontend": {
+        "entrypoint": "examples/frontend/dist/index.html"
+      },
+      "source": ["examples/frontend/dist/"],
+      "build": ["cd examples/frontend && pnpm run build"],
+      "type": "assets"
     }
   },
   "output_env_file": ".env",
