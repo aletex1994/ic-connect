@@ -13,17 +13,16 @@ import { useState } from 'react';
 function WalletConnector() {
   const [icIdentity, setIcIdentity] = useState<SignIdentity | undefined>(undefined);
 
-  const { connect, connected, address, balance, signMessage, sendBTC, signPsbt, switchNetwork, requestAccounts, getPublicKey, getNetwork } =
-    useLaserEyes();
+  const { connect, connected, address, balance, signMessage, signPsbt, switchNetwork, requestAccounts, getPublicKey, getNetwork } = useLaserEyes();
 
   const handleConnect = () => {
     connect(UNISAT);
   };
 
   const handleSendBTC = async () => {
-    const recipient = 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq';
-    const amount = 1000; // 1000 sats
-    await sendBTC(recipient, amount);
+    //const recipient = 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq';
+    //const amount = 1000; // 1000 sats
+    // await sendBTC(recipient, amount);
   };
 
   const handleSignMessage = async () => {
