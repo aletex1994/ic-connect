@@ -308,7 +308,6 @@ export function SiwbIdentityProvider<T extends SIWB_IDENTITY_SERVICE>({
         } else {
           signMessageType = { ECDSA: null };
         }
-        console.log({ signMessageType: JSON.stringify(signMessageType) });
         const signature = await state.provider.signMessage(siwbMessage as string);
         updateState({
           signMessageType,
