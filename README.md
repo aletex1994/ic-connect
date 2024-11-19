@@ -8,8 +8,6 @@ A Sign-In with Bitcoin for the Internet Computer.
 - [Remote/Mainnet Development](#remotemainnet-development)
 - [Frontend Integration and Example](#frontend-integration-and-example)
 
-
-
 ## Local Development
 
 1. create canister first
