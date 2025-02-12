@@ -407,6 +407,8 @@ export type SiwbIdentityContextType = {
    * will differ. */
   identityAddress?: string;
 
+  identityPublicKey?: string;
+
   /** Clears the identity from the state and local storage. Effectively "logs the user out". */
   clear: () => void;
 
@@ -425,6 +427,8 @@ export type SiwbIdentityContextType = {
 
   /** We don't have things like rainbow kit right now, so we have to manually return btc address */
   getAddress: () => string | undefined;
+
+  getPublicKey: () => string | undefined;
 
   setLaserEyes: (laserEyes: LaserEyesContextType, providerType?: ProviderType) => Promise<void>;
 };
@@ -506,11 +510,24 @@ export function SiwbIdentityProvider<T extends verifierService>({
     await laserEyes.connect(providerType ?? p);
     const network = await provider.getNetwork();
     const address = await provider.requestAccounts();
-    updateState({ selectedProvider: providerType ?? p, provider: provider, network, connectedBtcAddress: address ? address[0] : '' });
+    const publicKey = await provider.getPublicKey();
+    console.log('setLaserEyes');
+    console.log({ address, publicKey });
+    updateState({
+      selectedProvider: providerType ?? p,
+      provider: provider,
+      network,
+      connectedBtcAddress: address ? address[0] : '',
+      connectedBtcPublicKey: publicKey,
+    });
   }
 
   function getAddress() {
     return state.connectedBtcAddress;
+  }
+
+  function getPublicKey() {
+    return state.connectedBtcPublicKey;
   }
 
   /**
@@ -586,7 +603,7 @@ export function SiwbIdentityProvider<T extends verifierService>({
     const sessionIdentity = Ed25519KeyIdentity.generate();
     const sessionPublicKey = sessionIdentity.getPublicKey().toDer();
 
-    if (!state.anonymousActor || !state.connectedBtcAddress) {
+    if (!state.anonymousActor || !state.connectedBtcAddress || !state.connectedBtcPublicKey) {
       rejectLoginWithError(new Error('Invalid actor or address.'));
       return;
     }
@@ -626,12 +643,13 @@ export function SiwbIdentityProvider<T extends verifierService>({
     const identity = DelegationIdentity.fromDelegation(sessionIdentity, delegationChain);
 
     // Save the identity to local storage.
-    saveIdentity(state.connectedBtcAddress, sessionIdentity, delegationChain);
+    saveIdentity(state.connectedBtcAddress, publickeyHex, sessionIdentity, delegationChain);
 
     // Set the identity in state.
     updateState({
       loginStatus: 'success',
       identityAddress: state.connectedBtcAddress,
+      identityPublicKey: publickeyHex,
       identity,
       delegationChain,
     });
@@ -741,8 +759,10 @@ export function SiwbIdentityProvider<T extends verifierService>({
       loginError: undefined,
       identity: undefined,
       identityAddress: undefined,
+      identityPublicKey: undefined,
       delegationChain: undefined,
       connectedBtcAddress: undefined,
+      connectedBtcPublicKey: undefined,
       signMessageType: undefined,
     });
     clearIdentity();
@@ -753,9 +773,11 @@ export function SiwbIdentityProvider<T extends verifierService>({
    */
   useEffect(() => {
     try {
-      const [a, i, d] = loadIdentity();
+      const [a, p, i, d] = loadIdentity();
+
       updateState({
         identityAddress: a,
+        identityPublicKey: p,
         identity: i,
         delegationChain: d,
         isInitializing: false,
@@ -814,6 +836,7 @@ export function SiwbIdentityProvider<T extends verifierService>({
         signMessageStatus,
         signMessageError,
         getAddress,
+        getPublicKey,
         clear,
       }}
     >

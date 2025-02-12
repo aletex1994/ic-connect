@@ -21,11 +21,11 @@ importers:
         specifier: ^2.1.3
         version: 2.1.3
       '@omnisat/lasereyes':
-        specifier: ^0.0.125
-        version: 0.0.125(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.3)(vite@5.4.11(@types/node@20.17.6))
+        specifier: ^0.0.139
+        version: 0.0.139(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.3)(vite@5.4.11(@types/node@20.17.6))
       '@omnisat/lasereyes-core':
-        specifier: ^0.0.44
-        version: 0.0.44(typescript@5.6.3)
+        specifier: ^0.0.61
+        version: 0.0.61(typescript@5.6.3)
     devDependencies:
       '@types/node':
         specifier: ^20.10.6
@@ -553,6 +553,9 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
+  '@magiceden-oss/runestone-lib@1.0.2':
+    resolution: {integrity: sha512-C4XoE7tHxxaWQNzovBIEndXGrTesotshnKQA8DXlnoVDvriD6G26ezUoj9AlEb2UAPbEijSga4Dtwd86Z0a1jg==}
+
   '@nanostores/persistent@0.10.2':
     resolution: {integrity: sha512-BEndnLhRC+yP7gXTESepBbSj8XNl8OXK9hu4xAgKC7MWJHKXnEqJMqY47LUyHxK6vYgFnisyHmqq+vq8AUFyIg==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -589,20 +592,17 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@omnisat/lasereyes-core@0.0.44':
-    resolution: {integrity: sha512-vSRaCKR/offcJwD894RGraQS1HLNoN7BfIctTnpSSLEO1DxDr2aCw72M2ir9xe0I4X2TSyFaf3Nnk1bfmO14Kg==}
+  '@omnisat/lasereyes-core@0.0.61':
+    resolution: {integrity: sha512-BAJk7PnAj/0pmpwOcR/4T8zdpYv2yil6rm+JbWLgl6GZPIQi2qZ2KRna5DowGn5qWIdnfsA2VVZTrpCExQyr+w==}
 
-  '@omnisat/lasereyes-core@0.0.47':
-    resolution: {integrity: sha512-KWhSNN0dkePHLurzXsbngC4htzJe9PdqEZetdxeSbQVlLxYBH6ptUIknMTIinTvUXV29Tbb5Jr3BJ6EKWhsaEg==}
-
-  '@omnisat/lasereyes-react@0.0.42':
-    resolution: {integrity: sha512-MwkgNaiwpgk/PCUU+tGQyRS8KJb+AGyGDRUqD8/O1rB8qFd0fkfsw0/9pyQwquN0GMnSP28S7I527uFI7eS1fQ==}
+  '@omnisat/lasereyes-react@0.0.56':
+    resolution: {integrity: sha512-z4W3IAXUk0vhscuN0v4wrlrJDgdBMWyN1U0PDZLH5byfBSHwa92mv4KAnJL9Fjq0YNuT+crG2HZ/XDLrDTz1EQ==}
     peerDependencies:
-      react: ^18.3.1
-      react-dom: ^18.3.1
+      react: '>=17'
+      react-dom: '>=17'
 
-  '@omnisat/lasereyes@0.0.125':
-    resolution: {integrity: sha512-SrCqZjR3j/pS5wEbHelWWEmx2M5OWe3POmh+P1lB5aajcEkYrw/UKLneFPGFe5ggTAkvP36XXUo7gbcFiYYG2w==}
+  '@omnisat/lasereyes@0.0.139':
+    resolution: {integrity: sha512-AkjK1AfTFJxKwc8F5kcRhQrn+kLu3E8o0IyIOxrNga1fJJjUMC4ri+LYZZp1rTtZ0uFQR64nQvSs9DhqCqs9Kg==}
 
   '@orangecrypto/orange-connect@1.2.2':
     resolution: {integrity: sha512-cv1TP+pan+Zx5yKuQHQsTIhABi2YlyTUZbzJgLbIB7fT1cA4plZiIS9GEJN7eD7wc60Fr/yumMV3zTIL5eSZ8w==}
@@ -2391,6 +2391,8 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
+  '@magiceden-oss/runestone-lib@1.0.2': {}
+
   '@nanostores/persistent@0.10.2(nanostores@0.11.3)':
     dependencies:
       nanostores: 0.11.3
@@ -2420,11 +2422,12 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
 
-  '@omnisat/lasereyes-core@0.0.44(typescript@5.6.3)':
+  '@omnisat/lasereyes-core@0.0.61(typescript@5.6.3)':
     dependencies:
       '@bitcoinerlab/secp256k1': 1.1.1
       '@cmdcode/crypto-utils': 2.4.6
       '@cmdcode/tapscript': 1.4.6
+      '@magiceden-oss/runestone-lib': 1.0.2
       '@nanostores/persistent': 0.10.2(nanostores@0.11.3)
       '@orangecrypto/orange-connect': 1.2.2
       axios: 1.7.7
@@ -2438,28 +2441,10 @@ snapshots:
       - debug
       - typescript
 
-  '@omnisat/lasereyes-core@0.0.47(typescript@5.6.3)':
-    dependencies:
-      '@bitcoinerlab/secp256k1': 1.1.1
-      '@cmdcode/crypto-utils': 2.4.6
-      '@cmdcode/tapscript': 1.4.6
-      '@nanostores/persistent': 0.10.2(nanostores@0.11.3)
-      '@orangecrypto/orange-connect': 1.2.2
-      axios: 1.7.7
-      bip32: 5.0.0-rc.0(typescript@5.6.3)
-      bip39: 3.1.0
-      bitcoinjs-lib: 7.0.0-rc.0(typescript@5.6.3)
-      buffer: 6.0.3
-      nanostores: 0.11.3
-      sats-connect: 2.8.3(typescript@5.6.3)
-    transitivePeerDependencies:
-      - debug
-      - typescript
-
-  '@omnisat/lasereyes-react@0.0.42(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.3)(vite@5.4.11(@types/node@20.17.6))':
+  '@omnisat/lasereyes-react@0.0.56(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.3)(vite@5.4.11(@types/node@20.17.6))':
     dependencies:
       '@nanostores/react': 0.7.3(nanostores@0.11.3)(react@18.3.1)
-      '@omnisat/lasereyes-core': 0.0.47(typescript@5.6.3)
+      '@omnisat/lasereyes-core': 0.0.61(typescript@5.6.3)
       bootstrap: 5.3.3(@popperjs/core@2.11.8)
       nanostores: 0.11.3
       react: 18.3.1
@@ -2472,10 +2457,10 @@ snapshots:
       - typescript
       - vite
 
-  '@omnisat/lasereyes@0.0.125(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.3)(vite@5.4.11(@types/node@20.17.6))':
+  '@omnisat/lasereyes@0.0.139(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.3)(vite@5.4.11(@types/node@20.17.6))':
     dependencies:
-      '@omnisat/lasereyes-core': 0.0.47(typescript@5.6.3)
-      '@omnisat/lasereyes-react': 0.0.42(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.3)(vite@5.4.11(@types/node@20.17.6))
+      '@omnisat/lasereyes-core': 0.0.61(typescript@5.6.3)
+      '@omnisat/lasereyes-react': 0.0.56(@popperjs/core@2.11.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.3)(vite@5.4.11(@types/node@20.17.6))
       bip39: 3.1.0
     transitivePeerDependencies:
       - '@popperjs/core'

@@ -108,8 +108,8 @@ import { Button, Typography } from 'antd';
 // import { useSiwbIdentity } from 'ic-use-siwb-identity'
 
 function App() {
-  const { identity, identityAddress, clear } = useSiwbIdentity();
-
+  const { identity, identityAddress, identityPublicKey, clear } = useSiwbIdentity();
+  console.log({ identity, identityAddress, identityPublicKey });
   return (
     <>
       <div>

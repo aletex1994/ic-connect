@@ -10,6 +10,7 @@ export type LoginStatus = 'error' | 'logging-in' | 'success' | 'idle';
 export type State = {
   selectedProvider?: ProviderType;
   connectedBtcAddress?: string;
+  connectedBtcPublicKey?: string;
   provider?: LaserEyesClient;
   network?: NetworkType;
   anonymousActor?: ActorSubclass<SIWB_IDENTITY_SERVICE>;
@@ -21,6 +22,7 @@ export type State = {
   loginError?: Error;
   identity?: DelegationIdentity;
   identityAddress?: string;
+  identityPublicKey?: string;
   delegationChain?: DelegationChain;
   signMessageType?: SignMessageType;
 };

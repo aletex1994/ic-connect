@@ -22,17 +22,18 @@ export function loadIdentity() {
   const d = DelegationChain.fromJSON(JSON.stringify(s.delegationChain));
   const i = DelegationIdentity.fromDelegation(Ed25519KeyIdentity.fromJSON(JSON.stringify(s.sessionIdentity)), d);
 
-  return [s.address, i, d] as const;
+  return [s.address, s.publicKey, i, d] as const;
 }
 
 /**
  * Saves the SIWB identity to local storage.
  */
-export function saveIdentity(address: string, sessionIdentity: Ed25519KeyIdentity, delegationChain: DelegationChain) {
+export function saveIdentity(address: string, publickey: string, sessionIdentity: Ed25519KeyIdentity, delegationChain: DelegationChain) {
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
       address: address,
+      publicKey: publickey,
       sessionIdentity: sessionIdentity.toJSON(),
       delegationChain: delegationChain.toJSON(),
     }),

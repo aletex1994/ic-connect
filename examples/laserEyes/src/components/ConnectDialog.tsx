@@ -6,8 +6,19 @@ import { UNISAT, useLaserEyes, WIZZ, XVERSE } from '@omnisat/lasereyes';
 export default function ConnectDialog({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (isOpen: boolean) => void }) {
   const p = useLaserEyes();
 
-  const { prepareLogin, isPrepareLoginIdle, prepareLoginError, loginError, setLaserEyes, login, getAddress, connectedBtcAddress, identity } =
-    useSiwbIdentity();
+  const {
+    prepareLogin,
+    isPrepareLoginIdle,
+    prepareLoginError,
+    loginError,
+    setLaserEyes,
+    login,
+    getAddress,
+    getPublicKey,
+    connectedBtcAddress,
+    identity,
+    identityPublicKey,
+  } = useSiwbIdentity();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [manually, setManually] = useState<boolean>(false);
@@ -17,6 +28,8 @@ export default function ConnectDialog({ isOpen, setIsOpen }: { isOpen: boolean; 
   useEffect(() => {
     if (!isPrepareLoginIdle) return;
     const address = getAddress();
+    const pubkey = getPublicKey();
+    console.log({ address, pubkey, identityPublicKey, connectedBtcAddress });
 
     if (address) {
       console.log({
