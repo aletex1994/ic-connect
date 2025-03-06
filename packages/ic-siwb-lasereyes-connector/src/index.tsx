@@ -12,32 +12,67 @@ import { KEY_ICSTORAGE_DELEGATION, KEY_ICSTORAGE_KEY, _deleteStorage, storage } 
 import { DelegationChain, DelegationIdentity, Ed25519KeyIdentity, isDelegationValid } from '@dfinity/identity';
 import { IC_SIWB_CANISTERID, IC_SIWB_CANISTERID_TESTNET } from './shared/constant';
 import { Principal } from '@dfinity/principal';
-import { LaserEyesClient, type ContentType } from '@omnisat/lasereyes-core';
-import { XVERSE, type NetworkType, type ProviderType } from '@omnisat/lasereyes';
-import { createContext, useContext, type ReactNode, useEffect, useState, useRef, useCallback } from 'react';
-import type { IDL } from '@dfinity/candid';
-import { AddressType, getAddressType, type NetworkItem } from './wallet';
-import type { LoginStatus, PrepareLoginStatus, State } from './state.type';
-import { callGetDelegation, callLogin, callPrepareLogin, createAnonymousActor } from './siwb-provider';
-import { clearIdentity, loadIdentity, saveIdentity } from './local-storage';
-import type { LoginOkResponse, SignMessageType, SignedDelegation as ServiceSignedDelegation } from './service.interface';
-import { createDelegationChain } from './delegation';
+import {
+  LaserEyesClient,
+  LEATHER,
+  OKX,
+  type ContentType,
+} from "@omnisat/lasereyes-core";
+import {
+  XVERSE,
+  type NetworkType,
+  type ProviderType,
+} from "@omnisat/lasereyes";
+import {
+  createContext,
+  useContext,
+  type ReactNode,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
+import type { IDL } from "@dfinity/candid";
+import { AddressType, getAddressType, type NetworkItem } from "./wallet";
+import type { LoginStatus, PrepareLoginStatus, State } from "./state.type";
+import {
+  callGetDelegation,
+  callLogin,
+  callPrepareLogin,
+  createAnonymousActor,
+} from "./siwb-provider";
+import { clearIdentity, loadIdentity, saveIdentity } from "./local-storage";
+import type {
+  LoginOkResponse,
+  SignMessageType,
+  SignedDelegation as ServiceSignedDelegation,
+} from "./service.interface";
+import { createDelegationChain } from "./delegation";
 
-export * from './service.interface';
-export * from './storage.type';
+export * from "./service.interface";
+export * from "./storage.type";
 // import { toHexString } from '@dfinity/candid';
 
 export class SiwbConnector {
-  constructor(private delegationIdentity: DelegationIdentity, private publicKey: string, private userAddress: string) {}
+  constructor(
+    private delegationIdentity: DelegationIdentity,
+    private publicKey: string,
+    private userAddress: string
+  ) {}
 
-  static async connect(provider: LaserEyesClient, canisterId?: string): Promise<SiwbConnector> {
+  static async connect(
+    provider: LaserEyesClient,
+    canisterId?: string
+  ): Promise<SiwbConnector> {
     let key: null | SignIdentity = null;
 
     const maybeIdentityStorage = await storage.get(KEY_ICSTORAGE_KEY);
 
     if (maybeIdentityStorage) {
       try {
-        key = Ed25519KeyIdentity.fromJSON(maybeIdentityStorage) as unknown as SignIdentity;
+        key = Ed25519KeyIdentity.fromJSON(
+          maybeIdentityStorage
+        ) as unknown as SignIdentity;
       } catch (e) {
         // Ignore this, this means that the ICStorage value isn't a valid Ed25519KeyIdentity
         // serialization.
@@ -55,11 +90,18 @@ export class SiwbConnector {
         if (chainStorage) {
           chain = DelegationChain.fromJSON(chainStorage);
 
-          chain.delegations.forEach(signedDelegation => {
+          chain.delegations.forEach((signedDelegation) => {
             const targets =
-              signedDelegation.delegation.targets && signedDelegation.delegation.targets.length > 0 ? signedDelegation.delegation.targets : undefined;
+              signedDelegation.delegation.targets &&
+              signedDelegation.delegation.targets.length > 0
+                ? signedDelegation.delegation.targets
+                : undefined;
             if (targets) {
-              delegationTargets = [...new Set(delegationTargets.concat(targets.map(e => e.toText())))];
+              delegationTargets = [
+                ...new Set(
+                  delegationTargets.concat(targets.map((e) => e.toText()))
+                ),
+              ];
             }
           });
           // Verify that the delegation isn't expired.
@@ -87,7 +129,11 @@ export class SiwbConnector {
     const _network = await provider.getNetwork();
 
     let canister_id = canisterId;
-    if (_network && (_network.toLowerCase().includes('test') || _network.toLowerCase().includes('sig'))) {
+    if (
+      _network &&
+      (_network.toLowerCase().includes("test") ||
+        _network.toLowerCase().includes("sig"))
+    ) {
       canister_id = canisterId ??= IC_SIWB_CANISTERID_TESTNET;
     }
 
@@ -95,37 +141,43 @@ export class SiwbConnector {
     const verifierActor = await _createActor<verifierService>(
       verifierIDL,
       canister_id ?? IC_SIWB_CANISTERID,
-      delegationIdentityK ?? (sessionId as unknown as SignIdentity),
+      delegationIdentityK ?? (sessionId as unknown as SignIdentity)
     );
 
     const accounts = (await provider?.requestAccounts()) as string[];
     if (accounts === undefined || accounts.length === 0) {
-      throw new Error('No accounts found');
+      throw new Error("No accounts found");
     } else {
       const currentAccount = accounts[0]!;
       const public_key = (await provider?.getPublicKey()) as string;
 
       if (delegationIdentityK === undefined) {
-        const messageRes = await verifierActor.actor.siwb_prepare_login(currentAccount);
+        const messageRes = await verifierActor.actor.siwb_prepare_login(
+          currentAccount
+        );
         let message: string;
-        if (hasOwnProperty(messageRes, 'Ok')) {
+        if (hasOwnProperty(messageRes, "Ok")) {
           // console.log(`prepare success ${messageRes.Ok}`);
           message = messageRes.Ok as string;
         } else {
-          throw new Error(messageRes['Err']);
+          throw new Error(messageRes["Err"]);
         }
         // console.log(`message is ${message}`);
         const signature = (await provider?.signMessage(message)) as string;
         // console.log(`signature is ${signature}`);
-        const { delegationIdentity, delegationChain } = await handleDelegationVerification(
-          verifierActor.actor,
-          currentAccount,
-          sessionId as unknown as SignIdentity,
-          public_key,
-          signature,
-        );
+        const { delegationIdentity, delegationChain } =
+          await handleDelegationVerification(
+            verifierActor.actor,
+            currentAccount,
+            sessionId as unknown as SignIdentity,
+            public_key,
+            signature
+          );
         delegationIdentityK = delegationIdentity;
-        await storage.set(KEY_ICSTORAGE_DELEGATION, JSON.stringify(delegationChain));
+        await storage.set(
+          KEY_ICSTORAGE_DELEGATION,
+          JSON.stringify(delegationChain)
+        );
       }
 
       // delegationChain save to localstorage
@@ -150,9 +202,13 @@ export class SiwbConnector {
   }
 
   public static async getPrincialFromBitcoinAddress(address: string) {
-    const verifierActor = await _createActor<verifierService>(verifierIDL, IC_SIWB_CANISTERID, undefined);
+    const verifierActor = await _createActor<verifierService>(
+      verifierIDL,
+      IC_SIWB_CANISTERID,
+      undefined
+    );
     const p = await verifierActor.actor.get_principal(address);
-    if (hasOwnProperty(p, 'Ok')) {
+    if (hasOwnProperty(p, "Ok")) {
       return p.Ok;
     } else {
       throw new Error(p.Err);
@@ -166,7 +222,9 @@ export class SiwbConnector {
 
     if (maybeIdentityStorage) {
       try {
-        key = Ed25519KeyIdentity.fromJSON(maybeIdentityStorage) as unknown as SignIdentity;
+        key = Ed25519KeyIdentity.fromJSON(
+          maybeIdentityStorage
+        ) as unknown as SignIdentity;
       } catch (e) {
         // Ignore this, this means that the ICStorage value isn't a valid Ed25519KeyIdentity
         // serialization.
@@ -184,11 +242,18 @@ export class SiwbConnector {
         if (chainStorage) {
           chain = DelegationChain.fromJSON(chainStorage);
 
-          chain.delegations.forEach(signedDelegation => {
+          chain.delegations.forEach((signedDelegation) => {
             const targets =
-              signedDelegation.delegation.targets && signedDelegation.delegation.targets.length > 0 ? signedDelegation.delegation.targets : undefined;
+              signedDelegation.delegation.targets &&
+              signedDelegation.delegation.targets.length > 0
+                ? signedDelegation.delegation.targets
+                : undefined;
             if (targets) {
-              delegationTargets = [...new Set(delegationTargets.concat(targets.map(e => e.toText())))];
+              delegationTargets = [
+                ...new Set(
+                  delegationTargets.concat(targets.map((e) => e.toText()))
+                ),
+              ];
             }
           });
           // Verify that the delegation isn't expired.
@@ -214,21 +279,39 @@ export async function handleDelegationVerification(
   address: string,
   sessionId: SignIdentity,
   public_key: string,
-  signature: string,
-): Promise<{ delegationIdentity: DelegationIdentity; delegationChain: DelegationChain }> {
-  const session_key = Array.from(new Uint8Array(sessionId.getPublicKey().toDer()));
-  const result = await actor.siwb_login(signature, address, public_key, session_key, { ECDSA: null });
+  signature: string
+): Promise<{
+  delegationIdentity: DelegationIdentity;
+  delegationChain: DelegationChain;
+}> {
+  const session_key = Array.from(
+    new Uint8Array(sessionId.getPublicKey().toDer())
+  );
+  const result = await actor.siwb_login(
+    signature,
+    address,
+    public_key,
+    session_key,
+    { ECDSA: null }
+  );
 
   // new SiwbConnector();
   // const result = verifyMessage(publicKey, sig, message);
-  if (hasOwnProperty(result, 'Ok')) {
+  if (hasOwnProperty(result, "Ok")) {
     const { expiration, user_canister_pubkey } = result.Ok as LoginDetails;
 
-    const res = await actor.siwb_get_delegation(address, session_key, expiration);
+    const res = await actor.siwb_get_delegation(
+      address,
+      session_key,
+      expiration
+    );
 
-    if (res && hasOwnProperty(res, 'Ok')) {
+    if (res && hasOwnProperty(res, "Ok")) {
       const signed_delegation = res.Ok as SignedDelegation;
-      const targets = signed_delegation.delegation.targets.length > 0 ? signed_delegation.delegation.targets[0] : undefined;
+      const targets =
+        signed_delegation.delegation.targets.length > 0
+          ? signed_delegation.delegation.targets[0]
+          : undefined;
       const s = {
         delegation: {
           pubkey: Uint8Array.from(signed_delegation.delegation.pubkey),
@@ -240,14 +323,14 @@ export async function handleDelegationVerification(
         timestamp: expiration,
       };
       const delegationResult = {
-        kind: 'success',
+        kind: "success",
         delegations: [s],
         userPublicKey: Uint8Array.from(s.userKey),
       };
       // console.log(toHexString(Uint8Array.from(s.userKey)));
       return await handleDelegation(delegationResult, sessionId);
     } else {
-      throw new Error('No signed delegation found');
+      throw new Error("No signed delegation found");
     }
   } else {
     throw new Error(result.Err as string);
@@ -325,7 +408,7 @@ export type LaserEyesContextType = {
   signPsbt: (
     tx: string,
     finalize?: boolean,
-    broadcast?: boolean,
+    broadcast?: boolean
   ) => Promise<
     | {
         signedPsbtHex: string | undefined;
@@ -335,7 +418,10 @@ export type LaserEyesContextType = {
     | undefined
   >;
   pushPsbt: (tx: string) => Promise<string | undefined>;
-  inscribe: (contentBase64: string, mimeType: ContentType) => Promise<string | string[]>;
+  inscribe: (
+    contentBase64: string,
+    mimeType: ContentType
+  ) => Promise<string | string[]>;
 };
 
 export type SiwbIdentityContextType = {
@@ -388,7 +474,7 @@ export type SiwbIdentityContextType = {
 
   /** Status of the SIWb message signing process. This is a re-export of the Wagmi
    * signMessage / status type. */
-  signMessageStatus: 'error' | 'idle' | 'pending' | 'success';
+  signMessageStatus: "error" | "idle" | "pending" | "success";
 
   /** Error that occurred during the SIWb message signing process. This is a re-export of the
    * Wagmi signMessage / error type. */
@@ -430,13 +516,27 @@ export type SiwbIdentityContextType = {
 
   getPublicKey: () => string | undefined;
 
-  setLaserEyes: (laserEyes: LaserEyesContextType, providerType?: ProviderType) => Promise<void>;
+  setLaserEyes: (
+    laserEyes: LaserEyesContextType,
+    providerType?: ProviderType
+  ) => Promise<void>;
 };
 
-export const SiwbIdentityContext = createContext<SiwbIdentityContextType | undefined>(undefined);
+export const SiwbIdentityContext = createContext<
+  SiwbIdentityContextType | undefined
+>(undefined);
 
-export function createClient(context: LaserEyesContextType): [LaserEyesClient, ProviderType] {
-  const { getPublicKey, signMessage, getNetwork, requestAccounts, connect, provider } = context;
+export function createClient(
+  context: LaserEyesContextType
+): [LaserEyesClient, ProviderType] {
+  const {
+    getPublicKey,
+    signMessage,
+    getNetwork,
+    requestAccounts,
+    connect,
+    provider,
+  } = context;
   const client = {
     getPublicKey,
     signMessage,
@@ -453,7 +553,9 @@ export const useSiwbIdentity = (): SiwbIdentityContextType => {
   const context = useContext(SiwbIdentityContext);
 
   if (!context) {
-    throw new Error('useSiwbIdentity must be used within an SiwbIdentityProvider');
+    throw new Error(
+      "useSiwbIdentity must be used within an SiwbIdentityProvider"
+    );
   }
   return { ...context };
 };
@@ -480,18 +582,18 @@ export function SiwbIdentityProvider<T extends verifierService>({
   /** The child components that the SiwbIdentityProvider will wrap. This allows any child component to access the authentication context provided by the SiwbIdentityProvider. */
   children: ReactNode;
 }) {
-  let signMessageStatus: 'error' | 'idle' | 'pending' | 'success' = 'idle';
+  let signMessageStatus: "error" | "idle" | "pending" | "success" = "idle";
   let signMessageError = null;
 
   const [state, setState] = useState<State>({
     isInitializing: true,
-    prepareLoginStatus: 'idle',
-    loginStatus: 'idle',
+    prepareLoginStatus: "idle",
+    loginStatus: "idle",
     selectedProvider: undefined,
   });
 
   function updateState(newState: Partial<State>) {
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       ...newState,
     }));
@@ -499,25 +601,30 @@ export function SiwbIdentityProvider<T extends verifierService>({
 
   // Keep track of the promise handlers for the login method during the async login process.
   const loginPromiseHandlers = useRef<{
-    resolve: (value: DelegationIdentity | PromiseLike<DelegationIdentity>) => void;
+    resolve: (
+      value: DelegationIdentity | PromiseLike<DelegationIdentity>
+    ) => void;
     reject: (error: Error) => void;
   } | null>(null);
 
   // const { provider, address: connectedBtcAddress, network } = useRegisterExtension(state.selectedProvider);
 
-  async function setLaserEyes(laserEyes: LaserEyesContextType, providerType?: ProviderType) {
+  async function setLaserEyes(
+    laserEyes: LaserEyesContextType,
+    providerType?: ProviderType
+  ) {
     const [provider, p] = createClient(laserEyes);
     await laserEyes.connect(providerType ?? p);
     const network = await provider.getNetwork();
     const address = await provider.requestAccounts();
     const publicKey = await provider.getPublicKey();
-    console.log('setLaserEyes');
+    console.log("setLaserEyes");
     console.log({ address, publicKey });
     updateState({
       selectedProvider: providerType ?? p,
       provider: provider,
       network,
-      connectedBtcAddress: address ? address[0] : '',
+      connectedBtcAddress: address ? address[0] : "",
       connectedBtcPublicKey: publicKey,
     });
   }
@@ -536,36 +643,46 @@ export function SiwbIdentityProvider<T extends verifierService>({
    */
   async function prepareLogin(): Promise<string | undefined> {
     if (!state.anonymousActor) {
-      throw new Error('Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider.');
+      throw new Error(
+        "Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider."
+      );
     }
     if (!state.connectedBtcAddress) {
-      throw new Error('No Bitcoin address available. Call prepareLogin after the user has connected their wallet.');
+      throw new Error(
+        "No Bitcoin address available. Call prepareLogin after the user has connected their wallet."
+      );
     }
 
     updateState({
-      prepareLoginStatus: 'preparing',
+      prepareLoginStatus: "preparing",
       prepareLoginError: undefined,
     });
 
     try {
-      const siwbMessage = await callPrepareLogin(state.anonymousActor, state.connectedBtcAddress);
+      const siwbMessage = await callPrepareLogin(
+        state.anonymousActor,
+        state.connectedBtcAddress
+      );
       updateState({
         siwbMessage,
-        prepareLoginStatus: 'success',
+        prepareLoginStatus: "success",
       });
       return siwbMessage;
     } catch (e) {
-      console.log('eee', e);
+      console.log("eee", e);
       const error = normalizeError(e);
       console.error(error);
       updateState({
-        prepareLoginStatus: 'error',
+        prepareLoginStatus: "error",
         prepareLoginError: error as any,
       });
     }
   }
 
-  async function rejectLoginWithError(error: Error | unknown, message?: string) {
+  async function rejectLoginWithError(
+    error: Error | unknown,
+    message?: string
+  ) {
     const e = normalizeError(error);
     const errorMessage = message || (e as any).message;
 
@@ -573,7 +690,7 @@ export function SiwbIdentityProvider<T extends verifierService>({
 
     updateState({
       siwbMessage: undefined,
-      loginStatus: 'error',
+      loginStatus: "error",
       loginError: new Error(errorMessage),
     });
 
@@ -588,14 +705,17 @@ export function SiwbIdentityProvider<T extends verifierService>({
     loginSignature: string | undefined,
     publickeyHex: string,
     signMessageType: SignMessageType,
-    error: Error | null,
+    error: Error | null
   ) {
     if (error) {
-      rejectLoginWithError(error, 'An error occurred while signing the login message.');
+      rejectLoginWithError(
+        error,
+        "An error occurred while signing the login message."
+      );
       return;
     }
     if (!loginSignature) {
-      rejectLoginWithError(new Error('Sign message returned no data.'));
+      rejectLoginWithError(new Error("Sign message returned no data."));
       return;
     }
 
@@ -603,8 +723,12 @@ export function SiwbIdentityProvider<T extends verifierService>({
     const sessionIdentity = Ed25519KeyIdentity.generate();
     const sessionPublicKey = sessionIdentity.getPublicKey().toDer();
 
-    if (!state.anonymousActor || !state.connectedBtcAddress || !state.connectedBtcPublicKey) {
-      rejectLoginWithError(new Error('Invalid actor or address.'));
+    if (
+      !state.anonymousActor ||
+      !state.connectedBtcAddress ||
+      !state.connectedBtcPublicKey
+    ) {
+      rejectLoginWithError(new Error("Invalid actor or address."));
       return;
     }
 
@@ -619,35 +743,51 @@ export function SiwbIdentityProvider<T extends verifierService>({
         state.connectedBtcAddress,
         publickeyHex,
         sessionPublicKey,
-        signMessageType,
+        signMessageType
       );
     } catch (e) {
-      rejectLoginWithError(e, 'Unable to login.');
+      rejectLoginWithError(e, "Unable to login.");
       return;
     }
 
     // Call the backend's siwb_get_delegation method to get the delegation.
     let signedDelegation: ServiceSignedDelegation;
     try {
-      signedDelegation = await callGetDelegation(state.anonymousActor, state.connectedBtcAddress, sessionPublicKey, loginOkResponse.expiration);
+      signedDelegation = await callGetDelegation(
+        state.anonymousActor,
+        state.connectedBtcAddress,
+        sessionPublicKey,
+        loginOkResponse.expiration
+      );
     } catch (e) {
-      rejectLoginWithError(e, 'Unable to get identity.');
+      rejectLoginWithError(e, "Unable to get identity.");
       return;
     }
 
     // Create a new delegation chain from the delegation.
-    const delegationChain = createDelegationChain(signedDelegation, loginOkResponse.user_canister_pubkey);
+    const delegationChain = createDelegationChain(
+      signedDelegation,
+      loginOkResponse.user_canister_pubkey
+    );
 
     // Create a new delegation identity from the session identity and the
     // delegation chain.
-    const identity = DelegationIdentity.fromDelegation(sessionIdentity, delegationChain);
+    const identity = DelegationIdentity.fromDelegation(
+      sessionIdentity,
+      delegationChain
+    );
 
     // Save the identity to local storage.
-    saveIdentity(state.connectedBtcAddress, publickeyHex, sessionIdentity, delegationChain);
+    saveIdentity(
+      state.connectedBtcAddress,
+      publickeyHex,
+      sessionIdentity,
+      delegationChain
+    );
 
     // Set the identity in state.
     updateState({
-      loginStatus: 'success',
+      loginStatus: "success",
       identityAddress: state.connectedBtcAddress,
       identityPublicKey: publickeyHex,
       identity,
@@ -675,20 +815,30 @@ export function SiwbIdentityProvider<T extends verifierService>({
     // Set the promise handlers immediately to ensure they are available for error handling.
 
     if (!state.anonymousActor) {
-      rejectLoginWithError(new Error('Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider.'));
+      rejectLoginWithError(
+        new Error(
+          "Hook not initialized properly. Make sure to supply all required props to the SiwbIdentityProvider."
+        )
+      );
       return promise;
     }
     if (!state.connectedBtcAddress) {
-      rejectLoginWithError(new Error('No Bitcoin address available. Call login after the user has connected their wallet.'));
+      rejectLoginWithError(
+        new Error(
+          "No Bitcoin address available. Call login after the user has connected their wallet."
+        )
+      );
       return promise;
     }
-    if (state.prepareLoginStatus === 'preparing') {
-      rejectLoginWithError(new Error("Don't call login while prepareLogin is running."));
+    if (state.prepareLoginStatus === "preparing") {
+      rejectLoginWithError(
+        new Error("Don't call login while prepareLogin is running.")
+      );
       return promise;
     }
 
     updateState({
-      loginStatus: 'logging-in',
+      loginStatus: "logging-in",
       loginError: undefined,
     });
 
@@ -698,32 +848,53 @@ export function SiwbIdentityProvider<T extends verifierService>({
       if (!siwbMessage) {
         siwbMessage = await prepareLogin();
         if (!siwbMessage) {
-          throw new Error('Prepare login failed did not return a SIWB message.');
+          throw new Error(
+            "Prepare login failed did not return a SIWB message."
+          );
         }
       }
 
       if (state.provider !== undefined) {
-        signMessageStatus = 'pending';
+        signMessageStatus = "pending";
         let signMessageType;
         if (state.selectedProvider === XVERSE) {
           const [addressType, _] = getAddressType(state.connectedBtcAddress);
-          if (addressType === AddressType.P2TR || addressType === AddressType.P2WPKH) {
+          if (
+            addressType === AddressType.P2TR ||
+            addressType === AddressType.P2WPKH
+          ) {
+            signMessageType = { Bip322Simple: null };
+          } else {
+            signMessageType = { ECDSA: null };
+          }
+        } else if (state.selectedProvider === LEATHER) {
+          const [addressType, _] = getAddressType(state.connectedBtcAddress);
+          if (
+            addressType === AddressType.P2TR ||
+            addressType === AddressType.P2WPKH
+          ) {
             signMessageType = { Bip322Simple: null };
           } else {
             signMessageType = { ECDSA: null };
           }
         } else {
+          // Fallback for USAT and OKX
           signMessageType = { ECDSA: null };
         }
-        const signature = await state.provider.signMessage(siwbMessage as string, state.connectedBtcAddress);
+        const signature = await state.provider.signMessage(
+          siwbMessage as string,
+          state.connectedBtcAddress
+        );
         updateState({
           signMessageType,
         });
-
-        signMessageStatus = 'success';
+        console.log("signature", signature);
+        console.log('signMessageType', signMessageType);
+        console.log('signmessageStatus', signMessageStatus);
+        signMessageStatus = "success";
         if (signature === undefined) {
-          signMessageStatus = 'error';
-          signMessageError = new Error('No signed message returned.');
+          signMessageStatus = "error";
+          signMessageError = new Error("No signed message returned.");
           rejectLoginWithError(signMessageError);
           return promise;
         }
@@ -738,7 +909,7 @@ export function SiwbIdentityProvider<T extends verifierService>({
       //   },
       // );
     } catch (e) {
-      signMessageStatus = 'error';
+      signMessageStatus = "error";
       signMessageError = e;
       rejectLoginWithError(e);
     }
@@ -752,10 +923,10 @@ export function SiwbIdentityProvider<T extends verifierService>({
   function clear() {
     updateState({
       isInitializing: false,
-      prepareLoginStatus: 'idle',
+      prepareLoginStatus: "idle",
       prepareLoginError: undefined,
       siwbMessage: undefined,
-      loginStatus: 'idle',
+      loginStatus: "idle",
       loginError: undefined,
       identity: undefined,
       identityAddress: undefined,
@@ -784,7 +955,7 @@ export function SiwbIdentityProvider<T extends verifierService>({
       });
     } catch (e) {
       if (e instanceof Error) {
-        console.log('Could not load identity from local storage: ', e.message);
+        console.log("Could not load identity from local storage: ", e.message);
       }
       updateState({
         isInitializing: false,
@@ -824,15 +995,15 @@ export function SiwbIdentityProvider<T extends verifierService>({
         ...state,
         setLaserEyes,
         prepareLogin,
-        isPreparingLogin: state.prepareLoginStatus === 'preparing',
-        isPrepareLoginError: state.prepareLoginStatus === 'error',
-        isPrepareLoginSuccess: state.prepareLoginStatus === 'success',
-        isPrepareLoginIdle: state.prepareLoginStatus === 'idle',
+        isPreparingLogin: state.prepareLoginStatus === "preparing",
+        isPrepareLoginError: state.prepareLoginStatus === "error",
+        isPrepareLoginSuccess: state.prepareLoginStatus === "success",
+        isPrepareLoginIdle: state.prepareLoginStatus === "idle",
         login,
-        isLoggingIn: state.loginStatus === 'logging-in',
-        isLoginError: state.loginStatus === 'error',
-        isLoginSuccess: state.loginStatus === 'success',
-        isLoginIdle: state.loginStatus === 'idle',
+        isLoggingIn: state.loginStatus === "logging-in",
+        isLoginError: state.loginStatus === "error",
+        isLoginSuccess: state.loginStatus === "success",
+        isLoginIdle: state.loginStatus === "idle",
         signMessageStatus,
         signMessageError,
         getAddress,
