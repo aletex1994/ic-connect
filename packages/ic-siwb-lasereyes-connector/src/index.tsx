@@ -15,6 +15,7 @@ import { Principal } from '@dfinity/principal';
 import {
   LaserEyesClient,
   LEATHER,
+  MAGIC_EDEN,
   OKX,
   type ContentType,
 } from "@omnisat/lasereyes-core";
@@ -877,6 +878,17 @@ export function SiwbIdentityProvider<T extends verifierService>({
           } else {
             signMessageType = { ECDSA: null };
           }
+        } else if (state.selectedProvider === MAGIC_EDEN) {
+          console.log("MAGIC_EDEN");
+          const [addressType, _] = getAddressType(state.connectedBtcAddress);
+          if (
+            addressType === AddressType.P2TR ||
+            addressType === AddressType.P2WPKH
+          ) {
+            signMessageType = { Bip322Simple: null };
+          } else {
+            signMessageType = { ECDSA: null };
+          }
         } else {
           // Fallback for USAT and OKX
           signMessageType = { ECDSA: null };
@@ -889,8 +901,8 @@ export function SiwbIdentityProvider<T extends verifierService>({
           signMessageType,
         });
         console.log("signature", signature);
-        console.log('signMessageType', signMessageType);
-        console.log('signmessageStatus', signMessageStatus);
+        console.log("signMessageType", signMessageType);
+        console.log("signmessageStatus", signMessageStatus);
         signMessageStatus = "success";
         if (signature === undefined) {
           signMessageStatus = "error";
