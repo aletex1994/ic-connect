@@ -619,8 +619,6 @@ export function SiwbIdentityProvider<T extends verifierService>({
     const network = await provider.getNetwork();
     const address = await provider.requestAccounts();
     const publicKey = await provider.getPublicKey();
-    console.log("setLaserEyes");
-    console.log({ address, publicKey });
     updateState({
       selectedProvider: providerType ?? p,
       provider: provider,
@@ -670,7 +668,6 @@ export function SiwbIdentityProvider<T extends verifierService>({
       });
       return siwbMessage;
     } catch (e) {
-      console.log("eee", e);
       const error = normalizeError(e);
       console.error(error);
       updateState({
@@ -879,7 +876,6 @@ export function SiwbIdentityProvider<T extends verifierService>({
             signMessageType = { ECDSA: null };
           }
         } else if (state.selectedProvider === MAGIC_EDEN) {
-          console.log("MAGIC_EDEN");
           const [addressType, _] = getAddressType(state.connectedBtcAddress);
           if (
             addressType === AddressType.P2TR ||
@@ -900,9 +896,6 @@ export function SiwbIdentityProvider<T extends verifierService>({
         updateState({
           signMessageType,
         });
-        console.log("signature", signature);
-        console.log("signMessageType", signMessageType);
-        console.log("signmessageStatus", signMessageStatus);
         signMessageStatus = "success";
         if (signature === undefined) {
           signMessageStatus = "error";

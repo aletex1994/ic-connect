@@ -60,13 +60,8 @@ export async function callLogin(
   signMessageType: SignMessageType | undefined,
 ) {
   if (!anonymousActor || !data || !address || !publickeyHex || !signMessageType) {
-    throw new Error('Invalid actor, data , address or signMessageType');
+    throw new Error("Invalid actor, data , address or signMessageType");
   }
-console.log("address", address);
-console.log("publickeyHex", publickeyHex);
-console.log("sessionPublicKey", sessionPublicKey);
-console.log("signMessageType", signMessageType);
-console.log("data", data);
 
 const loginReponse = await anonymousActor.siwb_login(
   data,
@@ -75,7 +70,6 @@ const loginReponse = await anonymousActor.siwb_login(
   new Uint8Array(sessionPublicKey),
   signMessageType
 );
-console.log(loginReponse);
   if ('Err' in loginReponse) {
     throw new Error(loginReponse.Err);
   }
