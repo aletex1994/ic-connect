@@ -16,6 +16,7 @@ import {
   LaserEyesClient,
   LEATHER,
   MAGIC_EDEN,
+  ORANGE,
   PHANTOM,
   type ContentType,
 } from "@omnisat/lasereyes-core";
@@ -894,6 +895,16 @@ export function SiwbIdentityProvider<T extends verifierService>({
             signMessageType = { ECDSA: null };
           }
         } else if (state.selectedProvider === MAGIC_EDEN) {
+          const [addressType, _] = getAddressType(state.connectedBtcAddress);
+          if (
+            addressType === AddressType.P2TR ||
+            addressType === AddressType.P2WPKH
+          ) {
+            signMessageType = { Bip322Simple: null };
+          } else {
+            signMessageType = { ECDSA: null };
+          }
+        } else if (state.selectedProvider === ORANGE) {
           const [addressType, _] = getAddressType(state.connectedBtcAddress);
           if (
             addressType === AddressType.P2TR ||
